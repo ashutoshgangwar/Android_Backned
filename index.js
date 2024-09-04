@@ -1,15 +1,15 @@
 const express = require("express");
 const cors = require("cors");
-require("./DB/config"); // Make sure this file is handling the MongoDB connection
+require("./DB/config"); 
 const User = require("./DB/users");
-// const signupuser = require("./DB/userdetails"); // Uncomment if needed
+const signup = require("./DB/signup"); 
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 
-app.post("/userdatas", async (req, resp) => {
+app.post("/userdata", async (req, resp) => {
   console.log('Request Headers:', req.headers);
   console.log('Request Body:', req.body);
   try {
@@ -22,6 +22,19 @@ app.post("/userdatas", async (req, resp) => {
   }
 });
 
+
+app.post("/signup", async (req, resp) => {
+  console.log('Request Headers:', req.headers);
+  console.log('Request Body:', req.body);
+  try {
+    let user = new signup(req.body);
+    let result = await user.save();
+    resp.send(result);
+  } catch (error) {
+    console.error('Error:', error.message);
+    resp.status(500).send({ error: error.message });
+  }
+});
 
 
 // app.post("/userdatas", async (req, resp) => {

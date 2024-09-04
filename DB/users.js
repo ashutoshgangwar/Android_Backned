@@ -5,12 +5,7 @@ const userSchema = new mongoose.Schema({
   age: Number,
   city: String,
   state: String
-},
-
-{ collection: 'users' } 
-
-);
-
- 
+  
+}, { collection: 'users' });
 
 module.exports = mongoose.model("users", userSchema);
