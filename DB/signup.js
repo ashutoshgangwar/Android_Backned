@@ -8,9 +8,9 @@ const signupSchema = new mongoose.Schema({
   password: { type: String, required: true },
   name: String, // Add these fields for profile info
   age: Number,
-  DOB: Number,
+  dob: String,
   city: String,
-  location: String,
+  state: String,
   gametype: String,
   game: String,
   gamestage: String
