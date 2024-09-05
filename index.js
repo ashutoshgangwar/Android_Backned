@@ -3,9 +3,7 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("./DB/config");
 const Signup = require("./DB/signup");
-const User = require("./DB/userdetails")
-
-
+const User = require("./DB/userdetails");
 
 const app = express();
 
@@ -63,10 +61,23 @@ app.post("/login", async (req, resp) => {
   }
 });
 
-// USERDATA API
+// USERDATA API (Save user data with reference to the logged-in user)
 app.post("/userdata", async (req, resp) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Extract token from Authorization header
+
+  if (!token) {
+    return resp.status(401).json({ message: "No token provided" });
+  }
+
   try {
-    let user = new User(req.body); // Save userdata as a Signup entry
+    // Verify the token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Add userId to request body
+    const userdata = { ...req.body, userId };
+
+    let user = new User(userdata); // Save userdata as a User entry
     let result = await user.save();
     resp.status(201).send(result);
   } catch (error) {
@@ -101,7 +112,6 @@ app.get("/profile", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 
 // Server Listening
 app.listen(6000, () => {
