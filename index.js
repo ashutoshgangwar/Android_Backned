@@ -75,16 +75,33 @@ app.post("/userdata", async (req, resp) => {
   }
 });
 
-// PROFILE API (Using the Signup schema to fetch profile data)
-app.get("/profile/:id", async (req, res) => {
+// PROFILE API (Fetch profile data using the JWT token)
+app.get("/profile", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Extract token from Authorization header
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
   try {
-    const profiles = await Signup.findById(req.params.id); // Fetch all users from signup collection
-    res.json(profiles);
+    // Verify the token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Fetch user profile using the userId from the token
+    const profile = await Signup.findById(userId);
+
+    if (!profile) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(profile);
   } catch (error) {
     console.error('Error:', error.message);
     res.status(500).json({ message: error.message });
   }
 });
+
 
 // Server Listening
 app.listen(6000, () => {
