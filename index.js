@@ -53,7 +53,8 @@ app.post("/login", async (req, resp) => {
       { expiresIn: '1h' }
     );
 
-    resp.send({ message: 'Login successful', token, user });
+    // Return userId separately along with the token
+    resp.send({ message: 'Login successful', token, userId: user._id });
     
   } catch (error) {
     console.error('Error:', error.message);
