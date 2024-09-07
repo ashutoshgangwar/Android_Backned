@@ -5,7 +5,8 @@ const userSchema = new mongoose.Schema({
     name: String,
     age: Number,
     city: String,
-    state: String
+    state: String,
+    userid:String
 },
 
 { collection: 'users' } 

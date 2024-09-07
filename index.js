@@ -63,28 +63,31 @@ app.post("/login", async (req, resp) => {
 
 // USERDATA API (Save user data with reference to the logged-in user)
 app.post("/userdata", async (req, resp) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Extract token from Authorization header
+  const token = req.headers.authorization?.split(" ")[1]; 
+  console.log('Received token:', token); // Log token to check if it's being passed
 
   if (!token) {
     return resp.status(401).json({ message: "No token provided" });
   }
 
   try {
-    // Verify the token
     const decoded = jwt.verify(token, JWT_SECRET);
-    const userId = decoded.userId;
+    console.log('Decoded token:', decoded); // Log decoded token for verification
 
-    // Add userId to request body
+    const userId = decoded.userId;
     const userdata = { ...req.body, userId };
 
-    let user = new User(userdata); // Save userdata as a User entry
+    let user = new User(userdata); 
     let result = await user.save();
     resp.status(201).send(result);
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Error while saving user data:', error.message);
     resp.status(500).send({ error: error.message });
   }
 });
+
+
+
 
 // PROFILE API (Fetch profile data using the JWT token)
 app.get("/profile", async (req, res) => {
