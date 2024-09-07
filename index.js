@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const multer = require('multer');
+const path = require('path');
 require("./DB/config");
 const Signup = require("./DB/signup");
 const User = require("./DB/userdetails");
@@ -14,8 +16,6 @@ const JWT_SECRET = 'your_secret_key';
 
 // SIGNUP API
 app.post("/signup", async (req, resp) => {
-  console.log('Request Headers:', req.headers);
-  console.log('Request Body:', req.body);
   try {
     let user = new Signup(req.body);
     let result = await user.save();
@@ -28,9 +28,6 @@ app.post("/signup", async (req, resp) => {
 
 // LOGIN API
 app.post("/login", async (req, resp) => {
-  console.log('Request Headers:', req.headers);
-  console.log('Request Body:', req.body);
-  
   const { email, password } = req.body;
 
   try {
@@ -46,14 +43,12 @@ app.post("/login", async (req, resp) => {
       return resp.status(401).send({ error: 'Invalid email or password' });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    // Return userId separately along with the token
     resp.send({ message: 'Login successful', token, userId: user._id });
     
   } catch (error) {
@@ -62,10 +57,9 @@ app.post("/login", async (req, resp) => {
   }
 });
 
-// USERDATA API (Save user data with reference to the logged-in user)
+// USERDATA API
 app.post("/userdata", async (req, resp) => {
   const token = req.headers.authorization?.split(" ")[1]; 
-  console.log('Received token:', token); // Log token to check if it's being passed
 
   if (!token) {
     return resp.status(401).json({ message: "No token provided" });
@@ -73,8 +67,6 @@ app.post("/userdata", async (req, resp) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    console.log('Decoded token:', decoded); // Log decoded token for verification
-
     const userId = decoded.userId;
     const userdata = { ...req.body, userId };
 
@@ -87,25 +79,19 @@ app.post("/userdata", async (req, resp) => {
   }
 });
 
-
-
-
-// PROFILE API (Fetch profile data using the JWT token)
+// PROFILE API
 app.get("/profile", async (req, res) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Extract token from Authorization header
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ message: "No token provided" });
   }
 
   try {
-    // Verify the token
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
 
-    // Fetch user profile using the userId from the token
-    const profile = await Signup.findById(userId);
-
+    const profile = await Signup.findById(userId).select("-password");
     if (!profile) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -117,7 +103,73 @@ app.get("/profile", async (req, res) => {
   }
 });
 
-// Server Listening
+// Set storage engine for multer
+const storage = multer.diskStorage({
+  destination: './uploads/profilePics/',
+  filename: function (req, file, cb) {
+    cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+// Initialize upload
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1000000 }, // Limit file size to 1MB
+  fileFilter: function (req, file, cb) {
+    checkFileType(file, cb);
+  }
+}).single('profilePic');
+
+// Check file type
+function checkFileType(file, cb) {
+  const filetypes = /jpeg|jpg|png/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (mimetype && extname) {
+    return cb(null, true);
+  } else {
+    cb('Error: Images Only!');
+  }
+}
+
+// Update Profile Picture API
+app.put("/profile/pic", (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
+    upload(req, res, async (err) => {
+      if (err) {
+        return res.status(400).json({ message: err });
+      }
+
+      try {
+        const user = await Signup.findById(decoded.userId);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        user.profilePic = `/uploads/profilePics/${req.file.filename}`;
+        await user.save();
+        res.status(200).json({ message: "Profile picture updated successfully", profilePic: user.profilePic });
+      } catch (error) {
+        res.status(500).json({ message: error.message });
+      }
+    });
+  });
+});
+
+// Serve static files from the uploads folder
+app.use('/uploads', express.static('uploads'));
+
 app.listen(6000, () => {
   console.log("Server is running on port 6000");
 });

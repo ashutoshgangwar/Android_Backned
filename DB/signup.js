@@ -6,15 +6,17 @@ const signupSchema = new mongoose.Schema({
   email: String,
   phonenumber: Number,
   password: { type: String, required: true },
-  name: String, // Add these fields for profile info
+  name: String,
   age: Number,
   dob: String,
   city: String,
   state: String,
   gametype: String,
   game: String,
-  gamestage: String
+  gamestage: String,
+  profilePic: String // Field for storing the profile image URL
 }, { collection: 'signup' });
+
 
 // Hash the password before saving
 signupSchema.pre('save', async function (next) {
