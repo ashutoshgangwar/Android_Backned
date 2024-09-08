@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     agegroup:Number,
     gamelevel:String,
     performance:String,
-    pcoaching:String,
+    previouscoaching:String,
     coachingplace:String,
     coachingintrest:String,
     userId:String
