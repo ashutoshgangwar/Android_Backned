@@ -7,6 +7,7 @@ const signupSchema = new mongoose.Schema({
   phonenumber: Number,
   password: { type: String, required: true },
   name: String,
+  gender:String,
   age: Number,
   dob: String,
   city: String,
