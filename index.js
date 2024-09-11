@@ -79,6 +79,30 @@ app.post("/userdata", async (req, resp) => {
   }
 });
 
+// FETCH USERDATA API
+app.get("/userdata", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    const userData = await User.findOne({ userId }).select("-password");
+    if (!userData) {
+      return res.status(404).json({ message: "User data not found" });
+    }
+
+    res.json(userData);
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // PROFILE API
 app.get("/profile", async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
