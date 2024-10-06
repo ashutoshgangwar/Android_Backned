@@ -13,8 +13,20 @@ const signupSchema = new mongoose.Schema({
   city: String,
   state: String,
   gametype: String,
-  game: String,
+  game: {
+    type: [String], // Change from String to [String] to allow an array
+    required: true
+},
   gamestage: String,
+  registeras: String,
+  instname:String,
+  headname:String,
+  heademail:String,
+  headphone:Number,
+  ptteachername:String,
+  ptteacheremail:String,
+  ptteacherphone:Number,
+  address:String,
   profilePic: String // Field for storing the profile image URL
 }, { collection: 'signup' });
 

@@ -26,6 +26,31 @@ app.post("/signup", async (req, resp) => {
   }
 });
 
+
+// CHECK EMAIL API
+app.get("/check-email", async (req, res) => {
+  const { email } = req.query; // Get the email from the query parameters
+
+  if (!email) {
+    return res.status(400).json({ message: "Email is required" });
+  }
+
+  try {
+    const user = await Signup.findOne({ email });
+
+    if (user) {
+      return res.status(200).json({ exists: true }); // Email exists
+    } else {
+      return res.status(200).json({ exists: false }); // Email does not exist
+    }
+  } catch (error) {
+    console.error('Error:', error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+
 // LOGIN API
 app.post("/login", async (req, resp) => {
   const { email, password } = req.body;
