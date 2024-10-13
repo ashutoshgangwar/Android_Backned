@@ -220,6 +220,31 @@ app.put("/profile/pic", (req, res) => {
 // Serve static files from the uploads folder
 app.use('/uploads', express.static('uploads'));
 
+// Event Data
+app.post("/addgame", async (req, resp) => {
+  const token = req.headers.authorization?.split(" ")[1]; 
+
+  if (!token) {
+    return resp.status(401).json({ message: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId; // Assuming the token has userId
+    const gameData = { ...req.body, userId }; // Attach userId to the game data
+
+    // Use the Game schema to save the event
+    let game = new Game(gameData);
+    let result = await game.save(); // Save the game event
+    resp.status(201).send(result); // Respond with the saved game data
+  } catch (error) {
+    console.error('Error while saving game data:', error.message);
+    resp.status(500).send({ error: error.message });
+  }
+});
+
+
+
 // Game details
 app.get("/gamedetail", async (req, res) => {
   try {
