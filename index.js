@@ -6,6 +6,7 @@ const path = require('path');
 require("./DB/config");
 const Signup = require("./DB/signup");
 const User = require("./DB/userdetails");
+const Game = require("./DB/gamedetail");
 
 const app = express();
 
@@ -218,6 +219,26 @@ app.put("/profile/pic", (req, res) => {
 
 // Serve static files from the uploads folder
 app.use('/uploads', express.static('uploads'));
+
+// Game details
+app.get("/gamedetail", async (req, res) => {
+  try {
+    // Fetch all game details from the Game model
+    const gamedetails = await Game.find();  // Adjust the query if you need specific filters
+
+    if (!gamedetails || gamedetails.length === 0) {
+      return res.status(404).json({ message: "No game details found" });
+    }
+
+    // Send all game details as a response
+    res.json(gamedetails);
+  } catch (error) {
+    console.error("Error fetching game details:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 
 app.listen(6000, () => {
   console.log("Server is running on port 6000");
