@@ -2,7 +2,11 @@ const mongoose = require("mongoose");
 
 
 const userSchema = new mongoose.Schema({
-    gamename: String,
+    gametype: String,
+    gamename: {
+    type: [String], // Change from String to [String] to allow an array
+    required: true
+},
     gamelevel:String,
     agegroup:Number,
     venue:String,

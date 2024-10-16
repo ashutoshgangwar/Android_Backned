@@ -7,6 +7,8 @@ require("./DB/config");
 const Signup = require("./DB/signup");
 const User = require("./DB/userdetails");
 const Game = require("./DB/gamedetail");
+const Registation_form = require("./DB/registation_form");
+
 
 const app = express();
 
@@ -262,6 +264,30 @@ app.get("/gamedetail", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+// REGISTATION FORM
+app.post("/registationform", async (req, resp) => {
+  const token = req.headers.authorization?.split(" ")[1]; 
+
+  if (!token) {
+    return resp.status(401).json({ message: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+    const userdata = { ...req.body, userId };
+
+    // Use the correct Registation_form model here
+    let registationForm = new Registation_form(userdata); 
+    let result = await registationForm.save();
+    resp.status(201).send(result);
+  } catch (error) {
+    console.error('Error while saving user registration form data:', error.message);
+    resp.status(500).send({ error: error.message });
+  }
+});
+
 
 
 
