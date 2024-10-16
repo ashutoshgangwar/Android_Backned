@@ -17,10 +17,10 @@ const userSchema = new mongoose.Schema({
     userId:String
 },
 
-{ collection: 'registation_form' } 
+{ collection: 'registration_form' } 
 
   );
 
-  module.exports = mongoose.model("Registation_form", userSchema);
+  module.exports = mongoose.model("Registration_form", userSchema);
 
   

@@ -7,7 +7,7 @@ require("./DB/config");
 const Signup = require("./DB/signup");
 const User = require("./DB/userdetails");
 const Game = require("./DB/gamedetail");
-const Registation_form = require("./DB/registation_form");
+const Registration_form = require("./DB/registration_form");
 
 
 const app = express();
@@ -266,7 +266,7 @@ app.get("/gamedetail", async (req, res) => {
 });
 
 // REGISTATION FORM
-app.post("/registationform", async (req, resp) => {
+app.post("/registrationform", async (req, resp) => {
   const token = req.headers.authorization?.split(" ")[1]; 
 
   if (!token) {
@@ -279,7 +279,7 @@ app.post("/registationform", async (req, resp) => {
     const userdata = { ...req.body, userId };
 
     // Use the correct Registation_form model here
-    let registationForm = new Registation_form(userdata); 
+    let registationForm = new Registration_form(userdata); 
     let result = await registationForm.save();
     resp.status(201).send(result);
   } catch (error) {
@@ -287,6 +287,41 @@ app.post("/registationform", async (req, resp) => {
     resp.status(500).send({ error: error.message });
   }
 });
+app.get("/registrationform", async (req, res) => {
+  const { userId } = req.query; // Get userId from the query parameters
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const tokenUserId = decoded.userId;
+
+    // Check if the token userId matches the query userId
+    if (tokenUserId !== userId) {
+      return res.status(403).json({ message: "Unauthorized access" });
+    }
+
+    const registrationForms = await Registration_form.find({ userId }); // Fetch all forms for the given userId
+    if (!registrationForms || registrationForms.length === 0) {
+      return res.status(404).json({ message: "No registration forms found for this user" });
+    }
+
+    res.json(registrationForms);
+  } catch (error) {
+    console.error('Error:', error.message); // Log the error
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: "Invalid token" });
+    } else if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: "Token expired" });
+    }
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+
 
 
 
