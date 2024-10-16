@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 
 const userSchema = new mongoose.Schema({
+    formNumber:String,
     gametype: String,
     gamename: {
     type: [String], // Change from String to [String] to allow an array
