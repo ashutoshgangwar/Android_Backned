@@ -288,35 +288,46 @@ app.post("/registrationform", async (req, resp) => {
   }
 });
 app.get("/registrationform", async (req, res) => {
-  const { userId } = req.query; // Get userId from the query parameters
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
+    console.error("No token provided in the request.");
     return res.status(401).json({ message: "No token provided" });
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const tokenUserId = decoded.userId;
+    const decoded = jwt.verify(token, JWT_SECRET); // Verify token
+    const userId = decoded.userId; // Extract userId from the token
+    const queryUserId = req.query.userId; // Get userId from query parameters
+    const formNumber = req.query.formNumber; // Get formNumber from query parameters
+
+    console.log(`Decoded userId: ${userId}, Query userId: ${queryUserId}, Query formNumber: ${formNumber}`); // Log for debugging
 
     // Check if the token userId matches the query userId
-    if (tokenUserId !== userId) {
+    if (userId !== queryUserId) {
+      console.error("Unauthorized access: userId does not match.");
       return res.status(403).json({ message: "Unauthorized access" });
     }
 
-    const registrationForms = await Registration_form.find({ userId }); // Fetch all forms for the given userId
+    // Fetch registration forms for the user and specific formNumber
+    const registrationForms = await Registration_form.find({ userId, formNumber });
     if (!registrationForms || registrationForms.length === 0) {
+      console.error("No registration forms found for this user.");
       return res.status(404).json({ message: "No registration forms found for this user" });
     }
 
     res.json(registrationForms);
   } catch (error) {
-    console.error('Error:', error.message); // Log the error
+    console.error("Error in fetching registration forms:", error.message);
+
+    // Handle specific JWT errors
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ message: "Invalid token" });
     } else if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ message: "Token expired" });
     }
+
+    // Fallback error handler
     res.status(500).json({ message: "Internal server error" });
   }
 });

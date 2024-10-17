@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 
 const userSchema = new mongoose.Schema({
+    formNumber:String,
+    applicationno:String,
     fullname: String,
     dob: String,
     weight: Number,
