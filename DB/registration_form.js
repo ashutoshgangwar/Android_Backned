@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
     time:String,
     city: String,
     gamelevel:String,
+    venue:String,
     userId:String
 },
 

@@ -17,6 +17,9 @@ app.use(cors());
 
 const JWT_SECRET = 'your_secret_key';
 
+
+
+
 // SIGNUP API
 app.post("/signup", async (req, resp) => {
   try {
@@ -287,21 +290,25 @@ app.post("/registrationform", async (req, resp) => {
     resp.status(500).send({ error: error.message });
   }
 });
+
 app.get("/registrationform", async (req, res) => {
+  // Extract the token from the Authorization header
   const token = req.headers.authorization?.split(" ")[1];
 
-  if (!token) {
-    console.error("No token provided in the request.");
-    return res.status(401).json({ message: "No token provided" });
+  // Check if the token is provided
+  if (!token || token.split('.').length !== 3) {
+    console.error("Invalid token format or no token provided.");
+    return res.status(401).json({ message: "Invalid token format or no token provided" });
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET); // Verify token
+    // Verify the token and decode the payload
+    const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId; // Extract userId from the token
     const queryUserId = req.query.userId; // Get userId from query parameters
     const formNumber = req.query.formNumber; // Get formNumber from query parameters
 
-    console.log(`Decoded userId: ${userId}, Query userId: ${queryUserId}, Query formNumber: ${formNumber}`); // Log for debugging
+    console.log(`Decoded userId: ${userId}, Query userId: ${queryUserId}, Query formNumber: ${formNumber}`);
 
     // Check if the token userId matches the query userId
     if (userId !== queryUserId) {
@@ -316,6 +323,7 @@ app.get("/registrationform", async (req, res) => {
       return res.status(404).json({ message: "No registration forms found for this user" });
     }
 
+    // Respond with the found registration forms
     res.json(registrationForms);
   } catch (error) {
     console.error("Error in fetching registration forms:", error.message);
@@ -327,10 +335,15 @@ app.get("/registrationform", async (req, res) => {
       return res.status(401).json({ message: "Token expired" });
     }
 
+    // Log the full error for debugging
+    console.error(error);
+
     // Fallback error handler
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
 
 
 
